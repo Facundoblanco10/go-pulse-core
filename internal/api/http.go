@@ -3,17 +3,23 @@ package api
 import (
 	"net/http"
 
+	"github.com/Facundoblanco10/go-pulse-core/internal/jobs"
 	"github.com/gin-gonic/gin"
 )
 
-func NewRouter() *gin.Engine {
-	r := gin.Default()
+func NewRouter(jobSvc *jobs.Service) *gin.Engine {
+	router := gin.Default()
 
-	r.GET("/health", func(c *gin.Context) {
+	// Health
+	router.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 		})
 	})
 
-	return r
+	// jobs
+	jobHandler := NewJobHandler(jobSvc)
+	jobHandler.RegisterRoutes(router)
+
+	return router
 }

@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: pulsecore-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  pulsecore-dev:
+    image: golang:1.24
+    container_name: pulsecore-dev
+    working_dir: /app
+    volumes:
+      - .:/app
+      - go-mod-cache:/go/pkg/mod
+    command: sh -c "go mod download && go run ./cmd/server"
+    ports:
+      - "${PORT}:8080"
+    environment:
+      ENVIRONMENT: docker-dev
+      GIN_MODE: ${GIN_MODE}
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  go-mod-cache:
+  pg-data:
