@@ -36,3 +36,7 @@ func (s *Service) CreateJob(ctx context.Context, in CreateJobInput) (*Job, error
 
 	return job, nil
 }
+
+func (s *Service) ListJobs(ctx context.Context) ([]Job, error) {
+	return s.repo.List(ctx)
+}

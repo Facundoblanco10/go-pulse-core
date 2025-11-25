@@ -36,3 +36,28 @@ func (r *JobRepository) Create(ctx context.Context, j *jobs.Job) error {
 	j.ID = model.ID
 	return nil
 }
+
+func (r *JobRepository) List(ctx context.Context) ([]jobs.Job, error) {
+	var result []JobModel
+	if err := r.db.WithContext(ctx).Find(&result).Error; err != nil {
+		return nil, err
+	}
+
+	jobsList := make([]jobs.Job, len(result))
+	for i, model := range result {
+		var payload map[string]any
+		if model.Payload != nil {
+			_ = json.Unmarshal(model.Payload, &payload)
+		}
+		jobsList[i] = jobs.Job{
+			ID:        model.ID,
+			Type:      model.Type,
+			Status:    jobs.Status(model.Status),
+			Payload:   payload,
+			CreatedAt: model.CreatedAt,
+			UpdatedAt: model.UpdatedAt,
+		}
+	}
+
+	return jobsList, nil
+}

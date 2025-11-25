@@ -17,6 +17,7 @@ func NewJobHandler(svc *jobs.Service) *JobHandler {
 
 func (h *JobHandler) RegisterRoutes(r *gin.Engine) {
 	r.POST("/jobs", h.createJob)
+	r.GET("/jobs", h.listJobs)
 }
 
 func (h *JobHandler) createJob(c *gin.Context) {
@@ -37,4 +38,16 @@ func (h *JobHandler) createJob(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, job)
+}
+
+func (h *JobHandler) listJobs(c *gin.Context) {
+	jobs, err := h.svc.ListJobs(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "failed to retrieve jobs",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, jobs)
 }
