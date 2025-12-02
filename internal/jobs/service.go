@@ -2,10 +2,13 @@ package jobs
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+var ErrJobNotFound = errors.New("job not found")
 
 type Service struct {
 	repo Repository
@@ -39,4 +42,8 @@ func (s *Service) CreateJob(ctx context.Context, in CreateJobInput) (*Job, error
 
 func (s *Service) ListJobs(ctx context.Context) ([]Job, error) {
 	return s.repo.List(ctx)
+}
+
+func (s *Service) DeleteJob(ctx context.Context, id string) error {
+	return s.repo.Delete(ctx, id)
 }

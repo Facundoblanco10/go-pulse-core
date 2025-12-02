@@ -61,3 +61,16 @@ func (r *JobRepository) List(ctx context.Context) ([]jobs.Job, error) {
 
 	return jobsList, nil
 }
+
+func (r *JobRepository) Delete(ctx context.Context, id string) error {
+	res := r.db.WithContext(ctx).Delete(&JobModel{}, "id = ?", id)
+	if res.Error != nil {
+		return res.Error
+	}
+
+	if res.RowsAffected == 0 {
+		return jobs.ErrJobNotFound
+	}
+
+	return nil
+}

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/Facundoblanco10/go-pulse-core/internal/jobs"
@@ -18,6 +19,7 @@ func NewJobHandler(svc *jobs.Service) *JobHandler {
 func (h *JobHandler) RegisterRoutes(r *gin.Engine) {
 	r.POST("/jobs", h.createJob)
 	r.GET("/jobs", h.listJobs)
+	r.DELETE("/jobs/:id", h.deleteJob)
 }
 
 func (h *JobHandler) createJob(c *gin.Context) {
@@ -50,4 +52,31 @@ func (h *JobHandler) listJobs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, jobs)
+}
+
+func (h *JobHandler) deleteJob(c *gin.Context) {
+	id := c.Param("id")
+	if id == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "missing job ID",
+		})
+		return
+	}
+
+	err := h.svc.DeleteJob(c.Request.Context(), id)
+	if err != nil {
+		if errors.Is(err, jobs.ErrJobNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{
+				"error": "job not found",
+			})
+			return
+		}
+
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "could not delete job",
+		})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
