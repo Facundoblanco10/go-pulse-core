@@ -13,13 +13,13 @@ services:
     restart: unless-stopped
 
   pulsecore-dev:
-    image: golang:1.24
+    image: golang:1.25
     container_name: pulsecore-dev
     working_dir: /app
     volumes:
       - .:/app
       - go-mod-cache:/go/pkg/mod
-    command: sh -c "go mod download && go run ./cmd/server"
+    command: sh -c "go install github.com/air-verse/air@latest && /go/bin/air"
     ports:
       - "${PORT}:8080"
     environment:
@@ -33,6 +33,7 @@ services:
     depends_on:
       - db
     restart: unless-stopped
+
 
 volumes:
   go-mod-cache:
