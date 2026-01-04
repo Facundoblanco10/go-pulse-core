@@ -19,7 +19,7 @@ func NewJobHandler(svc *jobs.Service) *JobHandler {
 func (h *JobHandler) RegisterRoutes(r *gin.Engine) {
 	r.POST("/jobs", h.createJob)
 	r.GET("/jobs", h.listJobs)
-	r.DELETE("/jobs/:id", h.deleteJob)
+	r.PATCH("/jobs/:id/cancel", h.cancelJob)
 }
 
 func (h *JobHandler) createJob(c *gin.Context) {
@@ -54,7 +54,7 @@ func (h *JobHandler) listJobs(c *gin.Context) {
 	c.JSON(http.StatusOK, jobs)
 }
 
-func (h *JobHandler) deleteJob(c *gin.Context) {
+func (h *JobHandler) cancelJob(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
 		c.JSON(http.StatusBadRequest, gin.H{
@@ -63,7 +63,7 @@ func (h *JobHandler) deleteJob(c *gin.Context) {
 		return
 	}
 
-	err := h.svc.DeleteJob(c.Request.Context(), id)
+	err := h.svc.CancelJob(c.Request.Context(), id)
 	if err != nil {
 		if errors.Is(err, jobs.ErrJobNotFound) {
 			c.JSON(http.StatusNotFound, gin.H{
@@ -73,10 +73,12 @@ func (h *JobHandler) deleteJob(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "could not delete job",
+			"error": "could not cancel job",
 		})
 		return
 	}
 
-	c.Status(http.StatusNoContent)
+	c.JSON(http.StatusOK, gin.H{
+		"message": "job canceled successfully",
+	})
 }

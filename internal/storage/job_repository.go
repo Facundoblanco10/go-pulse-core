@@ -62,8 +62,9 @@ func (r *JobRepository) List(ctx context.Context) ([]jobs.Job, error) {
 	return jobsList, nil
 }
 
-func (r *JobRepository) Delete(ctx context.Context, id string) error {
-	res := r.db.WithContext(ctx).Delete(&JobModel{}, "id = ?", id)
+func (r *JobRepository) Cancel(ctx context.Context, id string) error {
+	res := r.db.WithContext(ctx).Model(&JobModel{}).Where("id = ?", id).
+		Update("status", string(jobs.StatusCanceled))
 	if res.Error != nil {
 		return res.Error
 	}
